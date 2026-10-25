@@ -16,7 +16,6 @@ int yylex(void);
 %token <ival> NUMBER CONSTANT
 %token EQ NE LE GE LSHIFT RSHIFT INC DEC
 
-/* Déclaration des priorités et de l'associativité (du plus bas au plus haut) */
 %right '='
 %left '|'
 %left '^'
@@ -26,7 +25,7 @@ int yylex(void);
 %left LSHIFT RSHIFT
 %left '+' '-'
 %left '*' '/' '%'
-%right INC DEC
+%right INC DEC '@'
 
 %%
 
@@ -83,6 +82,10 @@ expression:
     | CONSTANT
     | '(' expression ')'
     | NAME '=' expression
+    | NAME '(' expr_list ')'
+    | NAME '(' ')'
+    | expression '(' expr_list ')'
+    | expression '(' ')'
     | expression '+' expression
     | expression '-' expression
     | expression '*' expression
@@ -103,6 +106,14 @@ expression:
     | DEC expression
     | expression INC
     | expression DEC
+    | '-' expression %prec '@'
+    | '*' expression %prec '@'
+    | '&' expression %prec '@'
+    ;
+
+expr_list:
+    expression
+    | expr_list ',' expression
     ;
 
 %%
