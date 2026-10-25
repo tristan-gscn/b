@@ -32,7 +32,18 @@ int yylex(void);
 
 program:
     /* empty */
-    | program statement
+    | program extdef
+    ;
+
+extdef:
+    NAME '(' arg_list ')' statement
+    | NAME '(' ')' statement
+    | EXTRN var_list ';'
+    ;
+
+arg_list:
+    NAME
+    | arg_list ',' NAME
     ;
 
 statement:
