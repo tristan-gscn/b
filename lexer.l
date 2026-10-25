@@ -1,9 +1,12 @@
 %{
 #include "parser.tab.h"
 #include <stdlib.h>
+#include <string.h>
 
 int yylval;
 %}
+
+%option noyywrap
 
 %%
 "auto"      { return AUTO; }
@@ -20,8 +23,11 @@ int yylval;
     return NAME;
 }
 
+[ \t\n\r]+ {
+    /* Ignore whitespace */
+}
 "/*"([^*]|\*+[^*/])*\*+"/" {
-    /* Ignore the comment */
+    /* Ignore comment */
 }
 
 [1-9][0-9]* {
@@ -32,7 +38,6 @@ int yylval;
     yylval = strtol(yytext, NULL, 8);
     return NUMBER;
 }
-
 \'([^'\\]|\\.)*\' {
     yylval = yytext[1];
     return CONSTANT;
@@ -42,4 +47,21 @@ int yylval;
     return STRING;
 }
 
+"=="    { return EQ; }
+"!="    { return NE; }
+"<="    { return LE; }
+">="      { return GE; }
+"<<"    { return LSHIFT; }
+">>"    { return RSHIFT; }
+"++"    { return INC; }
+"--"    { return DEC; }
+[-+*/%<>=&|^!()\[\]{};:,?] {
+    return yytext[0];
+}
+
 %%
+
+int main(void) {
+    yylex();
+    return 0;
+}
