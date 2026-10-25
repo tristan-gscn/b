@@ -1,12 +1,10 @@
 %{
-#include "parser.tab.h"
+#include "y.tab.h"
 #include <stdlib.h>
 #include <string.h>
-
-int yylval;
 %}
 
-%option noyywrap
+%option noyywrap noinput nounput
 
 %%
 "auto"      { return AUTO; }
@@ -20,6 +18,7 @@ int yylval;
 "return"    { return RETURN; }
 
 [a-zA-Z][a-zA-Z0-9]* {
+    yylval.sval = strdup(yytext);
     return NAME;
 }
 
@@ -31,19 +30,19 @@ int yylval;
 }
 
 [1-9][0-9]* {
-    yylval = atoi(yytext);
+    yylval.ival = atoi(yytext);
     return NUMBER;
 }
 0[0-9]* {
-    yylval = strtol(yytext, NULL, 8);
+    yylval.ival = strtol(yytext, NULL, 8);
     return NUMBER;
 }
 \'([^'\\]|\\.)*\' {
-    yylval = yytext[1];
+    yylval.ival = yytext[1];
     return CONSTANT;
 }
 \"([^\"\\]|\\.)*\" {
-    yylval = (int)strdup(yytext);
+    yylval.sval = strdup(yytext);
     return STRING;
 }
 
@@ -60,8 +59,3 @@ int yylval;
 }
 
 %%
-
-int main(void) {
-    yylex();
-    return 0;
-}
