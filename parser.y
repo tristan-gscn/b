@@ -16,9 +16,16 @@ int yylex(void);
 %token <ival> NUMBER CONSTANT
 %token EQ NE LE GE LSHIFT RSHIFT INC DEC
 
-%left '='
+%right '='
+%left '|'
+%left '^'
+%left '&'
+%left EQ NE
+%left '<' '>' LE GE
+%left LSHIFT RSHIFT
 %left '+' '-'
-%left '*' '/'
+%left '*' '/' '%'
+%right INC DEC
 
 %%
 
@@ -35,12 +42,30 @@ statement:
 expression:
     NUMBER
     | NAME
+    | STRING
+    | CONSTANT
+    | '(' expression ')'
     | NAME '=' expression
     | expression '+' expression
     | expression '-' expression
     | expression '*' expression
     | expression '/' expression
-    | '(' expression ')'
+    | expression '%' expression
+    | expression LSHIFT expression
+    | expression RSHIFT expression
+    | expression '<' expression
+    | expression '>' expression
+    | expression LE expression
+    | expression GE expression
+    | expression EQ expression
+    | expression NE expression
+    | expression '&' expression
+    | expression '^' expression
+    | expression '|' expression
+    | INC expression
+    | DEC expression
+    | expression INC
+    | expression DEC
     ;
 
 %%
