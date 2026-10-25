@@ -16,6 +16,7 @@ int yylex(void);
 %token <ival> NUMBER CONSTANT
 %token EQ NE LE GE LSHIFT RSHIFT INC DEC
 
+/* Déclaration des priorités et de l'associativité (du plus bas au plus haut) */
 %right '='
 %left '|'
 %left '^'
@@ -37,6 +38,31 @@ program:
 statement:
     expression ';'
     | RETURN expression ';'
+    | compound_statement
+    | IF '(' expression ')' statement
+    | IF '(' expression ')' statement ELSE statement
+    | WHILE '(' expression ')' statement
+    | ';'
+    ;
+
+compound_statement:
+    '{' statement_list '}'
+    | '{' declaration_list statement_list '}'
+    ;
+
+declaration_list:
+    AUTO var_list ';'
+    | declaration_list AUTO var_list ';'
+    ;
+
+var_list:
+    NAME
+    | var_list ',' NAME
+    ;
+
+statement_list:
+    statement
+    | statement_list statement
     ;
 
 expression:
