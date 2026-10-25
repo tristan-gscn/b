@@ -24,7 +24,7 @@ $(SCANNER): lexer.l $(PARSER_HEADER)
 test: $(TARGET)
 	printf '42;' | ./$(TARGET)
 	printf 'return 7;' | ./$(TARGET)
-	printf 'return return 7' | ./$(TARGET)
+	printf '7+4*8;' | ./$(TARGET)
 
 clean:
 	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER)

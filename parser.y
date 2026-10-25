@@ -16,6 +16,10 @@ int yylex(void);
 %token <ival> NUMBER CONSTANT
 %token EQ NE LE GE LSHIFT RSHIFT INC DEC
 
+%left '='
+%left '+' '-'
+%left '*' '/'
+
 %%
 
 program:
@@ -31,6 +35,12 @@ statement:
 expression:
     NUMBER
     | NAME
+    | NAME '=' expression
+    | expression '+' expression
+    | expression '-' expression
+    | expression '*' expression
+    | expression '/' expression
+    | '(' expression ')'
     ;
 
 %%
