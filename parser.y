@@ -100,7 +100,9 @@ initializer:
 
 statement:
     expression ';'
-    | RETURN ';'
+    | RETURN ';' {
+        codegen_return_zero();
+    }
     | RETURN expression ';' {
         codegen_return();
     }

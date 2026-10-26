@@ -54,6 +54,8 @@ test: $(TARGET)
 		'main() { return 42; }'; \
 	run_test 'implicit return value' \
 		'main() { auto x; x = 1; }'; \
+	run_test 'partial explicit return' \
+		'main(x) { if (x) return 1; }'; \
 	run_test 'character and string literals' \
 		'main() { auto message; message = "ok"; return '\''A'\''; }'; \
 	run_test 'arithmetic expressions' \

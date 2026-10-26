@@ -29,6 +29,7 @@ void codegen_bitwise_and(void);
 void codegen_shift_left(void);
 void codegen_shift_right(void);
 void codegen_return(void);
+void codegen_return_zero(void);
 void codegen_call(int argument_count);
 void codegen_compare_equal(void);
 void codegen_compare_not_equal(void);
