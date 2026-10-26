@@ -12,11 +12,14 @@ SCANNER = lex.yy.c
 
 all: $(TARGET)
 
-$(TARGET): $(PARSER) $(SCANNER) src/codegen/codegen.o
-	$(CC) $(CFLAGS) -o $@ $(PARSER) $(SCANNER) src/codegen/codegen.o
+$(TARGET): $(PARSER) $(SCANNER) src/codegen/codegen.o src/symbols/symbols.o
+	$(CC) $(CFLAGS) -o $@ $(PARSER) $(SCANNER) src/codegen/codegen.o src/symbols/symbols.o
 
 src/codegen/codegen.o: src/codegen/codegen.c src/codegen/codegen.h
 	$(CC) $(CFLAGS) -Isrc/codegen -c $< -o $@
+
+src/symbols/symbols.o: src/symbols/symbols.c src/symbols/symbols.h
+	$(CC) $(CFLAGS) -Isrc/symbols -c $< -o $@
 
 $(PARSER) $(PARSER_HEADER): parser.y
 	$(YACC) -d parser.y
@@ -30,4 +33,5 @@ test: $(TARGET)
 	printf 'main() { return 7+4*8; }' | ./$(TARGET)
 
 clean:
-	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER) src/codegen/codegen.o
+	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER) \
+		src/codegen/codegen.o src/symbols/symbols.o

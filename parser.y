@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "src/codegen/codegen.h"
 #include <stdlib.h>
+#include "src/symbols/symbols.h"
 
 int yylex(void);
 void yyerror(const char *message);
@@ -41,13 +42,9 @@ program:
     ;
 
 definition:
-    NAME '(' parameters ')' {
-        codegen_function_start($1);
-    } statement {
-        codegen_function_end();
-        free($1);
-    }
-    | NAME '(' ')' {
+    NAME {
+        symbols_begin_function();
+    } '(' optional_parameters ')' {
         codegen_function_start($1);
     } statement {
         codegen_function_end();
@@ -58,8 +55,19 @@ definition:
     ;
 
 parameters:
-    NAME
-    | parameters ',' NAME
+    NAME {
+        symbols_add_parameter($1);
+        free($1);
+    }
+    | parameters ',' NAME {
+        symbols_add_parameter($3);
+        free($3);
+    }
+    ;
+
+optional_parameters:
+    /* empty */
+    | parameters
     ;
 
 initializers:
@@ -216,7 +224,12 @@ primary:
     }
     | CONSTANT
     | STRING
-    | NAME
+    | NAME {
+        int offset = symbols_parameter_offset($1);
+        if (offset >= 0)
+            codegen_push_parameter(offset);
+        free($1);
+    }
     | '(' expression ')'
     ;
 

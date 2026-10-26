@@ -3,6 +3,7 @@
 
 void codegen_function_start(const char *name)
 {
+    printf(".intel_syntax noprefix\n");
     printf(".text\n");
     printf(".globl %s\n", name);
     printf("%s:\n", name);
@@ -19,6 +20,11 @@ void codegen_function_end(void)
 void codegen_push_immediate(int value)
 {
     printf("    push %d\n", value);
+}
+
+void codegen_push_parameter(int offset)
+{
+    printf("    push DWORD PTR [ebp + %d]\n", offset);
 }
 
 void codegen_add(void)
