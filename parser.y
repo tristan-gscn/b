@@ -109,14 +109,29 @@ statement:
     | compound_statement
     | AUTO declarations ';'
     | EXTRN names ';'
-    | NAME ':' statement
-    | CASE constant_or_name ':' statement
-    | GOTO expression ';'
+    | NAME ':' {
+        codegen_emit_named_label($1);
+        free($1);
+    } statement
+    | CASE NUMBER ':' {
+        codegen_switch_case($2);
+    } statement
+    | CASE CONSTANT ':' {
+        codegen_switch_case($2);
+    } statement
+    | GOTO NAME ';' {
+        codegen_goto_named($2);
+        free($2);
+    }
     | IF '(' expression ')' if_start statement if_tail
     | WHILE while_start '(' expression ')' while_condition statement {
         codegen_while_end($2, $6);
     }
-    | SWITCH expression statement
+    | SWITCH expression {
+        codegen_switch_start();
+    } statement {
+        codegen_switch_end();
+    }
     | ';'
     ;
 

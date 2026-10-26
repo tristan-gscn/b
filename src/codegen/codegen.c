@@ -5,6 +5,9 @@ static int next_label;
 static int next_string;
 static int current_return_label;
 static int current_default_return_label;
+static int current_function_id;
+static int switch_active;
+static int switch_skip_label;
 static int current_else_label;
 static int current_if_end_label;
 #define CONDITIONAL_DEPTH 64
@@ -14,6 +17,7 @@ static int conditional_depth;
 
 void codegen_function_start(const char *name)
 {
+    ++current_function_id;
     printf(".intel_syntax noprefix\n");
     printf(".text\n");
     printf(".globl %s\n", name);
@@ -308,6 +312,42 @@ void codegen_jump_zero(int label)
     printf("    pop eax\n");
     printf("    cmp eax, 0\n");
     printf("    je .L%d\n", label);
+}
+
+void codegen_emit_named_label(const char *name)
+{
+    printf(".L%d_%s:\n", current_function_id, name);
+}
+
+void codegen_goto_named(const char *name)
+{
+    printf("    jmp .L%d_%s\n", current_function_id, name);
+}
+
+void codegen_switch_start(void)
+{
+    printf("    pop esi\n");
+    switch_active = 1;
+    switch_skip_label = -1;
+}
+
+void codegen_switch_case(int value)
+{
+    if (switch_active) {
+        if (switch_skip_label != -1)
+            codegen_emit_label(switch_skip_label);
+        switch_skip_label = codegen_new_label();
+        printf("    cmp esi, %d\n", value);
+        printf("    jne .L%d\n", switch_skip_label);
+    }
+}
+
+void codegen_switch_end(void)
+{
+    if (switch_active && switch_skip_label != -1)
+        codegen_emit_label(switch_skip_label);
+    switch_active = 0;
+    switch_skip_label = -1;
 }
 
 void codegen_conditional_start(void)
