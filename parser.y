@@ -172,6 +172,9 @@ expression:
 
 assignment:
     conditional
+    | '*' unary '=' assignment {
+        codegen_store_indirect();
+    }
     | NAME '=' assignment {
         int offset = symbols_local_offset($1);
         if (offset != -1)
@@ -250,8 +253,18 @@ unary:
     | DEC unary
     | '!' unary { codegen_logical_not(); }
     | '-' unary %prec UMINUS { codegen_negate(); }
-    | '*' unary
-    | '&' unary
+    | '*' unary %prec NAME_EXPR { codegen_load_indirect(); }
+    | '&' NAME {
+        int offset = symbols_parameter_offset($2);
+        if (offset != -1)
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($2);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+        }
+        free($2);
+    }
     ;
 
 postfix:

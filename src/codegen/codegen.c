@@ -36,6 +36,18 @@ void codegen_push_local(int offset)
     printf("    push DWORD PTR [ebp - %d]\n", -offset);
 }
 
+void codegen_push_parameter_address(int offset)
+{
+    printf("    lea eax, [ebp + %d]\n", offset);
+    printf("    push eax\n");
+}
+
+void codegen_push_local_address(int offset)
+{
+    printf("    lea eax, [ebp - %d]\n", -offset);
+    printf("    push eax\n");
+}
+
 void codegen_push_name(const char *name)
 {
     printf("    push DWORD PTR [%s]\n", name);
@@ -45,6 +57,20 @@ void codegen_store_local(int offset)
 {
     printf("    pop eax\n");
     printf("    mov DWORD PTR [ebp - %d], eax\n", -offset);
+}
+
+void codegen_load_indirect(void)
+{
+    printf("    pop eax\n");
+    printf("    mov eax, DWORD PTR [eax]\n");
+    printf("    push eax\n");
+}
+
+void codegen_store_indirect(void)
+{
+    printf("    pop eax\n");
+    printf("    pop ebx\n");
+    printf("    mov DWORD PTR [ebx], eax\n");
 }
 
 void codegen_allocate_local(void)
