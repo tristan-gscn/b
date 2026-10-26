@@ -36,6 +36,11 @@ void codegen_push_local(int offset)
     printf("    push DWORD PTR [ebp - %d]\n", -offset);
 }
 
+void codegen_push_name(const char *name)
+{
+    printf("    push DWORD PTR [%s]\n", name);
+}
+
 void codegen_store_local(int offset)
 {
     printf("    pop eax\n");
@@ -92,6 +97,23 @@ void codegen_modulo(void)
 void codegen_return(void)
 {
     printf("    pop eax\n");
+}
+
+void codegen_call(int argument_count)
+{
+    int i;
+
+    for (i = 0; i < argument_count / 2; ++i) {
+        int right = (argument_count - 1 - i) * 4;
+
+        printf("    mov eax, DWORD PTR [esp + %d]\n", i * 4);
+        printf("    mov ebx, DWORD PTR [esp + %d]\n", right);
+        printf("    mov DWORD PTR [esp + %d], ebx\n", i * 4);
+        printf("    mov DWORD PTR [esp + %d], eax\n", right);
+    }
+    printf("    call DWORD PTR [esp + %d]\n", argument_count * 4);
+    printf("    add esp, %d\n", (argument_count + 1) * 4);
+    printf("    push eax\n");
 }
 
 static void codegen_compare(const char *condition)

@@ -14,6 +14,7 @@ void yyerror(const char *message);
 }
 
 %type <ival> while_start while_condition
+%type <ival> arguments
 
 %token AUTO EXTRN CASE IF ELSE WHILE SWITCH GOTO RETURN
 %token <sval> NAME STRING
@@ -258,13 +259,21 @@ postfix:
     | postfix INC
     | postfix DEC
     | postfix '[' expression ']'
-    | postfix '(' arguments ')'
-    | postfix '(' ')'
+    | postfix '(' arguments ')' {
+        codegen_call($3);
+    }
+    | postfix '(' ')' {
+        codegen_call(0);
+    }
     ;
 
 arguments:
-    expression
-    | arguments ',' expression
+    expression {
+        $$ = 1;
+    }
+    | arguments ',' expression {
+        $$ = $1 + 1;
+    }
     ;
 
 primary:
@@ -275,12 +284,14 @@ primary:
     | STRING
     | NAME %prec NAME_EXPR {
         int offset = symbols_parameter_offset($1);
-        if (offset >= 0) {
+        if (offset != -1) {
             codegen_push_parameter(offset);
         } else {
             offset = symbols_local_offset($1);
             if (offset != -1)
                 codegen_push_local(offset);
+            else
+                codegen_push_name($1);
         }
         free($1);
     }
