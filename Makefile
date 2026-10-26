@@ -61,7 +61,9 @@ test: $(TARGET)
 	run_test 'indirect function call' \
 		'f(x) { return x; } main() { return f(7); }'; \
 	run_test 'vector indexing' \
-		'main(p) { return p[2]; }'
+		'main(p) { return p[2]; }'; \
+	run_test 'vector assignment' \
+		'main(p) { p[2] = 7; return p[2]; }'
 
 clean:
 	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER) \

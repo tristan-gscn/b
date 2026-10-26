@@ -172,16 +172,29 @@ expression:
 
 assignment:
     conditional
-    | '*' unary '=' assignment {
+    | lvalue '=' assignment {
         codegen_store_indirect();
     }
-    | NAME '=' assignment {
-        int offset = symbols_local_offset($1);
+    ;
+
+lvalue:
+    '*' unary
+    | NAME {
+        int offset = symbols_parameter_offset($1);
         if (offset != -1)
-            codegen_store_local(offset);
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($1);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+            else
+                codegen_push_name_address($1);
+        }
         free($1);
     }
-    | unary '=' assignment
+    | postfix '[' expression ']' {
+        codegen_index_address();
+    }
     ;
 
 conditional:
