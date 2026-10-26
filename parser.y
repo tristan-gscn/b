@@ -1,9 +1,7 @@
 %{
 #include <stdio.h>
-#include <stdlib.h>
-
-void yyerror(const char *s);
 int yylex(void);
+void yyerror(const char *message);
 %}
 
 %union {
@@ -17,6 +15,7 @@ int yylex(void);
 %token EQ NE LE GE LSHIFT RSHIFT INC DEC
 
 %right '='
+%right '?' ':'
 %left '|'
 %left '^'
 %left '&'
@@ -25,54 +24,69 @@ int yylex(void);
 %left LSHIFT RSHIFT
 %left '+' '-'
 %left '*' '/' '%'
-%right INC DEC '@'
+%right '!' UMINUS
+%left INC DEC
+%left '(' '['
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 %%
 
 program:
     /* empty */
-    | program extdef
+    | program definition
     ;
 
-extdef:
-    NAME '(' arg_list ')' statement
+definition:
+    NAME '(' parameters ')' statement
     | NAME '(' ')' statement
-    | EXTRN var_list ';'
+    | EXTRN names ';'
     ;
 
-arg_list:
+parameters:
     NAME
-    | arg_list ',' NAME
+    | parameters ',' NAME
     ;
 
 statement:
     expression ';'
+    | RETURN ';'
     | RETURN expression ';'
     | compound_statement
-    | IF '(' expression ')' statement
+    | AUTO declarations ';'
+    | EXTRN names ';'
+    | NAME ':' statement
+    | CASE constant_or_name ':' statement
+    | GOTO expression ';'
+    | IF '(' expression ')' statement %prec LOWER_THAN_ELSE
     | IF '(' expression ')' statement ELSE statement
     | WHILE '(' expression ')' statement
+    | SWITCH expression statement
     | ';'
     ;
 
 compound_statement:
     '{' statement_list '}'
-    | '{' declaration_list statement_list '}'
-    ;
-
-declaration_list:
-    AUTO var_list ';'
-    | declaration_list AUTO var_list ';'
-    ;
-
-var_list:
-    NAME
-    | var_list ',' NAME
     ;
 
 statement_list:
-    statement
+    /* empty */
     | statement_list statement
+    ;
+
+declarations:
+    declaration
+    | declarations ',' declaration
+    ;
+
+declaration:
+    NAME
+    | NAME constant_or_name
+    ;
+
+names:
+    NAME
+    | names ',' NAME
     ;
 
 expression:
@@ -114,6 +128,13 @@ expression:
 expr_list:
     expression
     | expr_list ',' expression
+    ;
+
+constant_or_name:
+    NUMBER
+    | CONSTANT
+    | STRING
+    | NAME
     ;
 
 %%
