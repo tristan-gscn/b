@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
-#include <stdlib.h>
 #include "src/codegen/codegen.h"
+#include <stdlib.h>
 
 int yylex(void);
 void yyerror(const char *message);
@@ -74,7 +74,9 @@ initializer:
 statement:
     expression ';'
     | RETURN ';'
-    | RETURN expression ';'
+    | RETURN expression ';' {
+        codegen_return();
+    }
     | compound_statement
     | AUTO declarations ';'
     | EXTRN names ';'
@@ -163,15 +165,25 @@ shift:
 
 additive:
     multiplicative %prec '+'
-    | additive '+' multiplicative
-    | additive '-' multiplicative
+    | additive '+' multiplicative {
+        codegen_add();
+    }
+    | additive '-' multiplicative {
+        codegen_subtract();
+    }
     ;
 
 multiplicative:
     unary
-    | multiplicative '*' unary
-    | multiplicative '/' unary
-    | multiplicative '%' unary
+    | multiplicative '*' unary {
+        codegen_multiply();
+    }
+    | multiplicative '/' unary {
+        codegen_divide();
+    }
+    | multiplicative '%' unary {
+        codegen_modulo();
+    }
     ;
 
 unary:
@@ -199,7 +211,9 @@ arguments:
     ;
 
 primary:
-    NUMBER
+    NUMBER {
+        codegen_push_immediate($1);
+    }
     | CONSTANT
     | STRING
     | NAME
