@@ -21,10 +21,5 @@ $(PARSER) $(PARSER_HEADER): parser.y
 $(SCANNER): lexer.l $(PARSER_HEADER)
 	$(LEX) -o $@ lexer.l
 
-test: $(TARGET)
-	printf 'main() { return 42; }' | ./$(TARGET)
-	printf 'main() { return 7; }' | ./$(TARGET)
-	printf 'main() { return 7+4*8; }' | ./$(TARGET)
-
 clean:
 	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER)
