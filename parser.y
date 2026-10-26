@@ -90,44 +90,97 @@ names:
     ;
 
 expression:
-    NUMBER
-    | NAME
-    | STRING
-    | CONSTANT
-    | '(' expression ')'
-    | NAME '=' expression
-    | NAME '(' expr_list ')'
-    | NAME '(' ')'
-    | expression '(' expr_list ')'
-    | expression '(' ')'
-    | expression '+' expression
-    | expression '-' expression
-    | expression '*' expression
-    | expression '/' expression
-    | expression '%' expression
-    | expression LSHIFT expression
-    | expression RSHIFT expression
-    | expression '<' expression
-    | expression '>' expression
-    | expression LE expression
-    | expression GE expression
-    | expression EQ expression
-    | expression NE expression
-    | expression '&' expression
-    | expression '^' expression
-    | expression '|' expression
-    | INC expression
-    | DEC expression
-    | expression INC
-    | expression DEC
-    | '-' expression %prec '@'
-    | '*' expression %prec '@'
-    | '&' expression %prec '@'
+    assignment
     ;
 
-expr_list:
+assignment:
+    conditional
+    | unary '=' assignment
+    ;
+
+conditional:
+    bitwise_or
+    | bitwise_or '?' expression ':' conditional
+    ;
+
+bitwise_or:
+    bitwise_xor
+    | bitwise_or '|' bitwise_xor
+    ;
+
+bitwise_xor:
+    bitwise_and %prec '^'
+    | bitwise_xor '^' bitwise_and
+    ;
+
+bitwise_and:
+    equality
+    | bitwise_and '&' equality
+    ;
+
+equality:
+    relational
+    | equality EQ relational
+    | equality NE relational
+    ;
+
+relational:
+    shift
+    | relational '<' shift
+    | relational '>' shift
+    | relational LE shift
+    | relational GE shift
+    ;
+
+shift:
+    additive %prec '<'
+    | shift LSHIFT additive
+    | shift RSHIFT additive
+    ;
+
+additive:
+    multiplicative %prec '+'
+    | additive '+' multiplicative
+    | additive '-' multiplicative
+    ;
+
+multiplicative:
+    unary
+    | multiplicative '*' unary
+    | multiplicative '/' unary
+    | multiplicative '%' unary
+    ;
+
+unary:
+    postfix %prec '!'
+    | INC unary
+    | DEC unary
+    | '!' unary
+    | '-' unary %prec UMINUS
+    | '*' unary
+    | '&' unary
+    ;
+
+postfix:
+    primary
+    | postfix INC
+    | postfix DEC
+    | postfix '[' expression ']'
+    | postfix '(' arguments ')'
+    | postfix '(' ')'
+    ;
+
+arguments:
     expression
-    | expr_list ',' expression
+    | arguments ',' expression
+    ;
+
+primary:
+    NUMBER
+    | CONSTANT
+    | STRING
+    | NAME
+    | '(' expression ')'
     ;
 
 constant_or_name:
