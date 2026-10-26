@@ -75,7 +75,13 @@ test: $(TARGET)
 	run_test 'vector assignment' \
 		'main(p) { p[2] = 7; return p[2]; }'; \
 	run_test 'prefix and postfix increments' \
-		'main() { auto x; x = 1; return x++ + ++x; }'
+		'main() { auto x; x = 1; return x++ + ++x; }'; \
+	run_test 'vector postfix increment' \
+		'main(p) { p[2]++; return p[2]; }'; \
+	run_test 'indirect postfix increment' \
+		'main(p) { (*p)++; return *p; }'; \
+	run_test 'vector prefix increment' \
+		'main(p) { ++p[2]; return p[2]; }'
 
 clean:
 	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER) \

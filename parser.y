@@ -296,6 +296,36 @@ multiplicative:
 
 unary:
     postfix %prec '!'
+    | INC NAME '[' expression ']' {
+        int offset = symbols_parameter_offset($2);
+        if (offset != -1)
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($2);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+            else
+                codegen_push_name_address($2);
+        }
+        free($2);
+        codegen_index_address();
+        codegen_increment(1, 1);
+    }
+    | DEC NAME '[' expression ']' {
+        int offset = symbols_parameter_offset($2);
+        if (offset != -1)
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($2);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+            else
+                codegen_push_name_address($2);
+        }
+        free($2);
+        codegen_index_address();
+        codegen_increment(1, -1);
+    }
     | INC NAME {
         int offset = symbols_parameter_offset($2);
         if (offset != -1)
@@ -346,6 +376,12 @@ unary:
 
 postfix:
     primary
+    | '(' '*' unary ')' INC {
+        codegen_increment(0, 1);
+    }
+    | '(' '*' unary ')' DEC {
+        codegen_increment(0, -1);
+    }
     | NAME INC {
         int offset = symbols_parameter_offset($1);
         if (offset != -1)
@@ -372,6 +408,14 @@ postfix:
                 codegen_push_name_address($1);
         }
         free($1);
+        codegen_increment(0, -1);
+    }
+    | postfix '[' expression ']' INC {
+        codegen_index_address();
+        codegen_increment(0, 1);
+    }
+    | postfix '[' expression ']' DEC {
+        codegen_index_address();
         codegen_increment(0, -1);
     }
     | postfix '[' expression ']' {
