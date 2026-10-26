@@ -367,8 +367,13 @@ primary:
     NUMBER {
         codegen_push_immediate($1);
     }
-    | CONSTANT
-    | STRING
+    | CONSTANT {
+        codegen_push_immediate($1);
+    }
+    | STRING {
+        codegen_push_string($1);
+        free($1);
+    }
     | NAME %prec NAME_EXPR {
         int offset = symbols_parameter_offset($1);
         if (offset != -1) {

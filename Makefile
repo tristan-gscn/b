@@ -52,6 +52,8 @@ test: $(TARGET)
 	}; \
 	run_test 'constant return' \
 		'main() { return 42; }'; \
+	run_test 'character and string literals' \
+		'main() { auto message; message = "ok"; return '\''A'\''; }'; \
 	run_test 'arithmetic expressions' \
 		'main() { return 7 + 4 * 8; }'; \
 	run_test 'bitwise and shift expressions' \

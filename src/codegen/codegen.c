@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 static int next_label;
+static int next_string;
 static int current_else_label;
 static int current_if_end_label;
 #define CONDITIONAL_DEPTH 64
@@ -28,6 +29,23 @@ void codegen_function_end(void)
 void codegen_push_immediate(int value)
 {
     printf("    push %d\n", value);
+}
+
+void codegen_push_string(const char *value)
+{
+    const unsigned char *p = (const unsigned char *)value;
+    int label = next_string++;
+
+    printf(".section .rodata\n");
+    printf(".LC%d:\n", label);
+    printf("    .byte ");
+    do {
+        printf("%s%u", p == (const unsigned char *)value ? "" : ", ",
+            (unsigned int)*p);
+    } while (*p++ != '\0');
+    printf("\n.text\n");
+    printf("    lea eax, [.LC%d]\n", label);
+    printf("    push eax\n");
 }
 
 void codegen_push_parameter(int offset)
