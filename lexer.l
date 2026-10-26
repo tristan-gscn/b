@@ -17,17 +17,13 @@
 "goto"      { return GOTO; }
 "return"    { return RETURN; }
 
-[a-zA-Z][a-zA-Z0-9]* {
+[A-Za-z_][A-Za-z0-9_]* {
     yylval.sval = strdup(yytext);
     return NAME;
 }
 
-[ \t\n\r]+ {
-    /* Ignore whitespace */
-}
-"/*"([^*]|\*+[^*/])*\*+"/" {
-    /* Ignore comment */
-}
+[ \t\n\r]+                    { }
+"/*"([^*]|\*+[^*/])*\*+"/"  { }
 
 [1-9][0-9]* {
     yylval.ival = atoi(yytext);
@@ -37,6 +33,7 @@
     yylval.ival = strtol(yytext, NULL, 8);
     return NUMBER;
 }
+
 \'([^'\\]|\\.)*\' {
     yylval.ival = yytext[1];
     return CONSTANT;
@@ -49,13 +46,11 @@
 "=="    { return EQ; }
 "!="    { return NE; }
 "<="    { return LE; }
-">="      { return GE; }
+">="    { return GE; }
 "<<"    { return LSHIFT; }
 ">>"    { return RSHIFT; }
 "++"    { return INC; }
 "--"    { return DEC; }
-[-+*/%<>=&|^!()\[\]{};:,?] {
-    return yytext[0];
-}
-
+[-+*/%<>=&|^!()[\]{};:,?] { return yytext[0]; }
+.                            { return yytext[0]; }
 %%
