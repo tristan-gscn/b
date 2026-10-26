@@ -18,6 +18,7 @@ void codegen_function_start(const char *name)
     printf("%s:\n", name);
     printf("    .long %s + 4\n", name);
     printf("    enter 0, 0\n");
+    printf("    mov eax, 0\n");
 }
 
 void codegen_function_end(void)
