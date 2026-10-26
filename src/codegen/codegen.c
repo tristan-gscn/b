@@ -3,6 +3,7 @@
 
 static int next_label;
 static int next_string;
+static int has_explicit_return;
 static int current_else_label;
 static int current_if_end_label;
 #define CONDITIONAL_DEPTH 64
@@ -18,11 +19,13 @@ void codegen_function_start(const char *name)
     printf("%s:\n", name);
     printf("    .long %s + 4\n", name);
     printf("    enter 0, 0\n");
-    printf("    mov eax, 0\n");
+    has_explicit_return = 0;
 }
 
 void codegen_function_end(void)
 {
+    if (!has_explicit_return)
+        printf("    mov eax, 0\n");
     printf("    leave\n");
     printf("    ret\n");
 }
@@ -209,6 +212,7 @@ void codegen_shift_right(void)
 
 void codegen_return(void)
 {
+    has_explicit_return = 1;
     printf("    pop eax\n");
 }
 
