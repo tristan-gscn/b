@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra
 YACC = yacc
 LEX = lex
 
-TARGET = parser
+TARGET = B
 PARSER = y.tab.c
 PARSER_HEADER = y.tab.h
 SCANNER = lex.yy.c
@@ -22,9 +22,9 @@ $(SCANNER): lexer.l $(PARSER_HEADER)
 	$(LEX) -o $@ lexer.l
 
 test: $(TARGET)
-	printf '42;' | ./$(TARGET)
-	printf 'return 7;' | ./$(TARGET)
-	printf '7+4*8;' | ./$(TARGET)
+	printf 'main() { return 42; }' | ./$(TARGET)
+	printf 'main() { return 7; }' | ./$(TARGET)
+	printf 'main() { return 7+4*8; }' | ./$(TARGET)
 
 clean:
 	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER)
