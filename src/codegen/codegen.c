@@ -4,6 +4,10 @@
 static int next_label;
 static int current_else_label;
 static int current_if_end_label;
+#define CONDITIONAL_DEPTH 64
+static int conditional_else_labels[CONDITIONAL_DEPTH];
+static int conditional_end_labels[CONDITIONAL_DEPTH];
+static int conditional_depth;
 
 void codegen_function_start(const char *name)
 {
@@ -271,6 +275,37 @@ void codegen_jump_zero(int label)
     printf("    pop eax\n");
     printf("    cmp eax, 0\n");
     printf("    je .L%d\n", label);
+}
+
+void codegen_conditional_start(void)
+{
+    int depth = conditional_depth++;
+
+    if (depth >= CONDITIONAL_DEPTH)
+        return;
+    conditional_else_labels[depth] = codegen_new_label();
+    conditional_end_labels[depth] = codegen_new_label();
+    codegen_jump_zero(conditional_else_labels[depth]);
+}
+
+void codegen_conditional_else(void)
+{
+    int depth = conditional_depth - 1;
+
+    if (depth < 0 || depth >= CONDITIONAL_DEPTH)
+        return;
+    codegen_jump(conditional_end_labels[depth]);
+    codegen_emit_label(conditional_else_labels[depth]);
+}
+
+void codegen_conditional_end(void)
+{
+    int depth = conditional_depth - 1;
+
+    if (depth < 0 || depth >= CONDITIONAL_DEPTH)
+        return;
+    codegen_emit_label(conditional_end_labels[depth]);
+    --conditional_depth;
 }
 
 void codegen_if_start(int else_label)

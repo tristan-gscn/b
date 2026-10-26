@@ -56,6 +56,8 @@ test: $(TARGET)
 		'main() { return 7 + 4 * 8; }'; \
 	run_test 'bitwise and shift expressions' \
 		'main() { return (1 | 2) ^ (8 >> 1) & (1 << 2); }'; \
+	run_test 'conditional expression' \
+		'main(x) { return x ? 7 : 9; }'; \
 	run_test 'parameters and local variables' \
 		'f(x) { auto y; y = x + 1; return y; }'; \
 	run_test 'if and while' \

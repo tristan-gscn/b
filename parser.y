@@ -200,7 +200,13 @@ lvalue:
 
 conditional:
     bitwise_or
-    | bitwise_or '?' expression ':' conditional
+    | bitwise_or '?' {
+        codegen_conditional_start();
+    } expression ':' {
+        codegen_conditional_else();
+    } conditional {
+        codegen_conditional_end();
+    }
     ;
 
 bitwise_or:
