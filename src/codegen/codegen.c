@@ -96,6 +96,19 @@ void codegen_index_address(void)
     printf("    push eax\n");
 }
 
+void codegen_increment(int prefix, int delta)
+{
+    printf("    pop eax\n");
+    printf("    mov ebx, DWORD PTR [eax]\n");
+    printf("    mov ecx, ebx\n");
+    if (delta > 0)
+        printf("    add ebx, 1\n");
+    else
+        printf("    sub ebx, 1\n");
+    printf("    mov DWORD PTR [eax], ebx\n");
+    printf("    push %s\n", prefix ? "ebx" : "ecx");
+}
+
 void codegen_allocate_local(void)
 {
     printf("    sub esp, 4\n");

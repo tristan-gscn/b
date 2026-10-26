@@ -15,6 +15,7 @@ void codegen_load_indirect(void);
 void codegen_store_indirect(void);
 void codegen_index(void);
 void codegen_index_address(void);
+void codegen_increment(int prefix, int delta);
 void codegen_allocate_local(void);
 void codegen_add(void);
 void codegen_subtract(void);

@@ -172,14 +172,7 @@ expression:
 
 assignment:
     conditional
-    | lvalue '=' assignment {
-        codegen_store_indirect();
-    }
-    ;
-
-lvalue:
-    '*' unary
-    | NAME {
+    | NAME '=' assignment {
         int offset = symbols_parameter_offset($1);
         if (offset != -1)
             codegen_push_parameter_address(offset);
@@ -191,7 +184,15 @@ lvalue:
                 codegen_push_name_address($1);
         }
         free($1);
+        codegen_store_indirect();
     }
+    | lvalue '=' assignment {
+        codegen_store_indirect();
+    }
+    ;
+
+lvalue:
+    '*' unary
     | postfix '[' expression ']' {
         codegen_index_address();
     }
@@ -262,8 +263,34 @@ multiplicative:
 
 unary:
     postfix %prec '!'
-    | INC unary
-    | DEC unary
+    | INC NAME {
+        int offset = symbols_parameter_offset($2);
+        if (offset != -1)
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($2);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+            else
+                codegen_push_name_address($2);
+        }
+        free($2);
+        codegen_increment(1, 1);
+    }
+    | DEC NAME {
+        int offset = symbols_parameter_offset($2);
+        if (offset != -1)
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($2);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+            else
+                codegen_push_name_address($2);
+        }
+        free($2);
+        codegen_increment(1, -1);
+    }
     | '!' unary { codegen_logical_not(); }
     | '-' unary %prec UMINUS { codegen_negate(); }
     | '*' unary %prec NAME_EXPR { codegen_load_indirect(); }
@@ -282,8 +309,34 @@ unary:
 
 postfix:
     primary
-    | postfix INC
-    | postfix DEC
+    | NAME INC {
+        int offset = symbols_parameter_offset($1);
+        if (offset != -1)
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($1);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+            else
+                codegen_push_name_address($1);
+        }
+        free($1);
+        codegen_increment(0, 1);
+    }
+    | NAME DEC {
+        int offset = symbols_parameter_offset($1);
+        if (offset != -1)
+            codegen_push_parameter_address(offset);
+        else {
+            offset = symbols_local_offset($1);
+            if (offset != -1)
+                codegen_push_local_address(offset);
+            else
+                codegen_push_name_address($1);
+        }
+        free($1);
+        codegen_increment(0, -1);
+    }
     | postfix '[' expression ']' {
         codegen_index();
     }
