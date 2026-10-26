@@ -1,5 +1,8 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include "src/codegen/codegen.h"
+
 int yylex(void);
 void yyerror(const char *message);
 %}
@@ -38,8 +41,18 @@ program:
     ;
 
 definition:
-    NAME '(' parameters ')' statement
-    | NAME '(' ')' statement
+    NAME '(' parameters ')' {
+        codegen_function_start($1);
+    } statement {
+        codegen_function_end();
+        free($1);
+    }
+    | NAME '(' ')' {
+        codegen_function_start($1);
+    } statement {
+        codegen_function_end();
+        free($1);
+    }
     | EXTRN names ';'
     | NAME initializers ';'
     ;
