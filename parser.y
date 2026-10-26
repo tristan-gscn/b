@@ -42,7 +42,8 @@ static void report_unknown(const char *name)
 %left '+' '-'
 %left '*' '/' '%'
 %right '!' UMINUS
-%left INC DEC
+%right INC DEC
+%left ')'
 %left '(' '['
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -219,8 +220,8 @@ assignment:
     ;
 
 lvalue:
-    '*' unary
-    | postfix '[' expression ']' {
+    '*' unary %prec NAME_EXPR
+    | postfix '[' expression ']' %prec NAME_EXPR {
         codegen_index_address();
     }
     ;
@@ -418,7 +419,7 @@ postfix:
         codegen_index_address();
         codegen_increment(0, -1);
     }
-    | postfix '[' expression ']' {
+    | postfix '[' expression ']' %prec NAME_EXPR {
         codegen_index();
     }
     | postfix '(' arguments ')' {
