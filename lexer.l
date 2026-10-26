@@ -1,5 +1,7 @@
 %{
 #include "y.tab.h"
+#include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 %}
@@ -25,12 +27,11 @@
 [ \t\n\r]+                    { }
 "/*"([^*]|\*+[^*/])*\*+"/"  { }
 
-[1-9][0-9]* {
-    yylval.ival = atoi(yytext);
-    return NUMBER;
-}
-0[0-9]* {
-    yylval.ival = strtol(yytext, NULL, 8);
+[0-9]+ {
+    errno = 0;
+    yylval.ival = (int)strtol(yytext, NULL, 10);
+    if (errno == ERANGE || yylval.ival < 0)
+        yylval.ival = INT_MAX;
     return NUMBER;
 }
 
