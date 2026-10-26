@@ -13,6 +13,8 @@ void yyerror(const char *message);
     char *sval;
 }
 
+%type <ival> while_start while_condition
+
 %token AUTO EXTRN CASE IF ELSE WHILE SWITCH GOTO RETURN
 %token <sval> NAME STRING
 %token <ival> NUMBER CONSTANT
@@ -92,11 +94,43 @@ statement:
     | NAME ':' statement
     | CASE constant_or_name ':' statement
     | GOTO expression ';'
-    | IF '(' expression ')' statement %prec LOWER_THAN_ELSE
-    | IF '(' expression ')' statement ELSE statement
-    | WHILE '(' expression ')' statement
+    | IF '(' expression ')' if_start statement if_tail
+    | WHILE while_start '(' expression ')' while_condition statement {
+        codegen_while_end($2, $6);
+    }
     | SWITCH expression statement
     | ';'
+    ;
+
+if_start:
+    {
+        codegen_if_start(codegen_new_label());
+    }
+    ;
+
+if_tail:
+    ELSE {
+        codegen_if_else();
+    } statement {
+        codegen_if_end();
+    }
+    | %prec LOWER_THAN_ELSE {
+        codegen_if_no_else();
+    }
+    ;
+
+while_start:
+    {
+        $$ = codegen_new_label();
+        codegen_emit_label($$);
+    }
+    ;
+
+while_condition:
+    {
+        $$ = codegen_new_label();
+        codegen_jump_zero($$);
+    }
     ;
 
 compound_statement:
@@ -168,16 +202,16 @@ bitwise_and:
 
 equality:
     relational
-    | equality EQ relational
-    | equality NE relational
+    | equality EQ relational { codegen_compare_equal(); }
+    | equality NE relational { codegen_compare_not_equal(); }
     ;
 
 relational:
     shift
-    | relational '<' shift
-    | relational '>' shift
-    | relational LE shift
-    | relational GE shift
+    | relational '<' shift { codegen_compare_less(); }
+    | relational '>' shift { codegen_compare_greater(); }
+    | relational LE shift { codegen_compare_less_equal(); }
+    | relational GE shift { codegen_compare_greater_equal(); }
     ;
 
 shift:
@@ -213,8 +247,8 @@ unary:
     postfix %prec '!'
     | INC unary
     | DEC unary
-    | '!' unary
-    | '-' unary %prec UMINUS
+    | '!' unary { codegen_logical_not(); }
+    | '-' unary %prec UMINUS { codegen_negate(); }
     | '*' unary
     | '&' unary
     ;
