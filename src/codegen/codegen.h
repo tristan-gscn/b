@@ -12,6 +12,7 @@ void codegen_push_name(const char *name);
 void codegen_store_local(int offset);
 void codegen_load_indirect(void);
 void codegen_store_indirect(void);
+void codegen_index(void);
 void codegen_allocate_local(void);
 void codegen_add(void);
 void codegen_subtract(void);

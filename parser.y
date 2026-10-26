@@ -271,7 +271,9 @@ postfix:
     primary
     | postfix INC
     | postfix DEC
-    | postfix '[' expression ']'
+    | postfix '[' expression ']' {
+        codegen_index();
+    }
     | postfix '(' arguments ')' {
         codegen_call($3);
     }

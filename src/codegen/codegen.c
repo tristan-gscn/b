@@ -73,6 +73,15 @@ void codegen_store_indirect(void)
     printf("    mov DWORD PTR [ebx], eax\n");
 }
 
+void codegen_index(void)
+{
+    printf("    pop ebx\n");
+    printf("    pop eax\n");
+    printf("    lea eax, [eax + ebx * 4]\n");
+    printf("    mov eax, DWORD PTR [eax]\n");
+    printf("    push eax\n");
+}
+
 void codegen_allocate_local(void)
 {
     printf("    sub esp, 4\n");

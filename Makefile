@@ -59,7 +59,9 @@ test: $(TARGET)
 	run_test 'if and while' \
 		'main() { auto x; while (x) { x = x - 1; } if (x == 0) return 1; else return 0; }'; \
 	run_test 'indirect function call' \
-		'f(x) { return x; } main() { return f(7); }'
+		'f(x) { return x; } main() { return f(7); }'; \
+	run_test 'vector indexing' \
+		'main(p) { return p[2]; }'
 
 clean:
 	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER) \
