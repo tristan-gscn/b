@@ -18,6 +18,7 @@ void yyerror(const char *message);
 %token <ival> NUMBER CONSTANT
 %token EQ NE LE GE LSHIFT RSHIFT INC DEC
 
+%nonassoc NAME_EXPR
 %right '='
 %right '?' ':'
 %left '|'
@@ -113,8 +114,16 @@ declarations:
     ;
 
 declaration:
-    NAME
-    | NAME constant_or_name
+    NAME {
+        if (symbols_add_local($1) != -1)
+            codegen_allocate_local();
+        free($1);
+    }
+    | NAME constant_or_name {
+        if (symbols_add_local($1) != -1)
+            codegen_allocate_local();
+        free($1);
+    }
     ;
 
 names:
@@ -128,6 +137,12 @@ expression:
 
 assignment:
     conditional
+    | NAME '=' assignment {
+        int offset = symbols_local_offset($1);
+        if (offset != -1)
+            codegen_store_local(offset);
+        free($1);
+    }
     | unary '=' assignment
     ;
 
@@ -224,10 +239,15 @@ primary:
     }
     | CONSTANT
     | STRING
-    | NAME {
+    | NAME %prec NAME_EXPR {
         int offset = symbols_parameter_offset($1);
-        if (offset >= 0)
+        if (offset >= 0) {
             codegen_push_parameter(offset);
+        } else {
+            offset = symbols_local_offset($1);
+            if (offset != -1)
+                codegen_push_local(offset);
+        }
         free($1);
     }
     | '(' expression ')'

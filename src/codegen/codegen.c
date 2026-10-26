@@ -27,6 +27,22 @@ void codegen_push_parameter(int offset)
     printf("    push DWORD PTR [ebp + %d]\n", offset);
 }
 
+void codegen_push_local(int offset)
+{
+    printf("    push DWORD PTR [ebp - %d]\n", -offset);
+}
+
+void codegen_store_local(int offset)
+{
+    printf("    pop eax\n");
+    printf("    mov DWORD PTR [ebp - %d], eax\n", -offset);
+}
+
+void codegen_allocate_local(void)
+{
+    printf("    sub esp, 4\n");
+}
+
 void codegen_add(void)
 {
     printf("    pop ebx\n");
