@@ -6,6 +6,15 @@
 
 int yylex(void);
 void yyerror(const char *message);
+static int parse_error;
+
+static void report_unknown(const char *name)
+{
+    if (!symbols_is_global(name))
+        fprintf(stderr, "unknown symbol: %s\n", name);
+    if (!symbols_is_global(name))
+        parse_error = 1;
+}
 %}
 
 %union {
@@ -47,6 +56,7 @@ program:
 
 definition:
     NAME {
+        symbols_add_global($1);
         symbols_begin_function();
     } '(' optional_parameters ')' {
         codegen_function_start($1);
@@ -54,8 +64,12 @@ definition:
         codegen_function_end();
         free($1);
     }
-    | EXTRN names ';'
-    | NAME initializers ';'
+    | EXTRN external_names ';'
+    | NAME {
+        symbols_add_global($1);
+    } initializers ';' {
+        free($1);
+    }
     ;
 
 parameters:
@@ -166,6 +180,17 @@ names:
     | names ',' NAME
     ;
 
+external_names:
+    NAME {
+        symbols_add_external($1);
+        free($1);
+    }
+    | external_names ',' NAME {
+        symbols_add_external($3);
+        free($3);
+    }
+    ;
+
 expression:
     assignment
     ;
@@ -180,8 +205,10 @@ assignment:
             offset = symbols_local_offset($1);
             if (offset != -1)
                 codegen_push_local_address(offset);
-            else
+            else {
+                report_unknown($1);
                 codegen_push_name_address($1);
+            }
         }
         free($1);
         codegen_store_indirect();
@@ -308,6 +335,10 @@ unary:
             offset = symbols_local_offset($2);
             if (offset != -1)
                 codegen_push_local_address(offset);
+            else {
+                report_unknown($2);
+                codegen_push_name_address($2);
+            }
         }
         free($2);
     }
@@ -382,8 +413,10 @@ primary:
             offset = symbols_local_offset($1);
             if (offset != -1)
                 codegen_push_local(offset);
-            else
+            else {
+                report_unknown($1);
                 codegen_push_name($1);
+            }
         }
         free($1);
     }
@@ -404,5 +437,5 @@ void yyerror(const char *message) {
 }
 
 int main(void) {
-    return yyparse() == 0 ? 0 : 1;
+    return yyparse() == 0 && !parse_error ? 0 : 1;
 }

@@ -66,6 +66,8 @@ test: $(TARGET)
 		'main() { auto x; while (x) { x = x - 1; } if (x == 0) return 1; else return 0; }'; \
 	run_test 'indirect function call' \
 		'f(x) { return x; } main() { return f(7); }'; \
+	run_test 'external function declaration' \
+		'extrn f; main() { return f(7); }'; \
 	run_test 'vector indexing' \
 		'main(p) { return p[2]; }'; \
 	run_test 'vector assignment' \
