@@ -205,17 +205,17 @@ conditional:
 
 bitwise_or:
     bitwise_xor
-    | bitwise_or '|' bitwise_xor
+    | bitwise_or '|' bitwise_xor { codegen_bitwise_or(); }
     ;
 
 bitwise_xor:
     bitwise_and %prec '^'
-    | bitwise_xor '^' bitwise_and
+    | bitwise_xor '^' bitwise_and { codegen_bitwise_xor(); }
     ;
 
 bitwise_and:
     equality
-    | bitwise_and '&' equality
+    | bitwise_and '&' equality { codegen_bitwise_and(); }
     ;
 
 equality:
@@ -234,8 +234,8 @@ relational:
 
 shift:
     additive %prec '<'
-    | shift LSHIFT additive
-    | shift RSHIFT additive
+    | shift LSHIFT additive { codegen_shift_left(); }
+    | shift RSHIFT additive { codegen_shift_right(); }
     ;
 
 additive:

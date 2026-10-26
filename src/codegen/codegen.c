@@ -156,6 +156,34 @@ void codegen_modulo(void)
     printf("    push edx\n");
 }
 
+static void codegen_bitwise(const char *instruction)
+{
+    printf("    pop ebx\n");
+    printf("    pop eax\n");
+    printf("    %s eax, ebx\n", instruction);
+    printf("    push eax\n");
+}
+
+void codegen_bitwise_or(void) { codegen_bitwise("or"); }
+void codegen_bitwise_xor(void) { codegen_bitwise("xor"); }
+void codegen_bitwise_and(void) { codegen_bitwise("and"); }
+
+void codegen_shift_left(void)
+{
+    printf("    pop ecx\n");
+    printf("    pop eax\n");
+    printf("    shl eax, cl\n");
+    printf("    push eax\n");
+}
+
+void codegen_shift_right(void)
+{
+    printf("    pop ecx\n");
+    printf("    pop eax\n");
+    printf("    sar eax, cl\n");
+    printf("    push eax\n");
+}
+
 void codegen_return(void)
 {
     printf("    pop eax\n");
