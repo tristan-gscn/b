@@ -41,11 +41,21 @@ definition:
     NAME '(' parameters ')' statement
     | NAME '(' ')' statement
     | EXTRN names ';'
+    | NAME initializers ';'
     ;
 
 parameters:
     NAME
     | parameters ',' NAME
+    ;
+
+initializers:
+    initializer
+    | initializers ',' initializer
+    ;
+
+initializer:
+    constant_or_name
     ;
 
 statement:
@@ -192,10 +202,10 @@ constant_or_name:
 
 %%
 
-void yyerror(const char *s) {
-    fprintf(stderr, "%s\n", s);
+void yyerror(const char *message) {
+    fprintf(stderr, "%s\n", message);
 }
 
 int main(void) {
-    return yyparse();
+    return yyparse() == 0 ? 0 : 1;
 }
