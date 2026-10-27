@@ -2,72 +2,17 @@
 #include <stdio.h>
 #include "src/codegen/codegen.h"
 #include <stdlib.h>
-#include <string.h>
+#include "src/semantic/labels.h"
 #include "src/symbols/symbols.h"
 
 int yylex(void);
 void yyerror(const char *message);
 static int parse_error;
 #define MAX_LABELS 64
-static char *labels[MAX_LABELS];
-static char *gotos[MAX_LABELS];
 #define MAX_SWITCHES 64
 static int switch_cases[MAX_SWITCHES][MAX_LABELS];
 static int switch_case_counts[MAX_LABELS];
-static int label_count;
-static int goto_count;
 static int switch_depth;
-
-static void begin_labels(void)
-{
-    label_count = 0;
-    goto_count = 0;
-    switch_depth = 0;
-}
-
-static int find_label(const char *name)
-{
-    int i;
-
-    for (i = 0; i < label_count; ++i)
-        if (strcmp(labels[i], name) == 0)
-            return 1;
-    return 0;
-}
-
-static void define_label(const char *name)
-{
-    if (find_label(name)) {
-        fprintf(stderr, "duplicate label: %s\n", name);
-        parse_error = 1;
-        return;
-    }
-    if (label_count < MAX_LABELS)
-        labels[label_count++] = strdup(name);
-}
-
-static void record_goto(const char *name)
-{
-    if (goto_count < MAX_LABELS)
-        gotos[goto_count++] = strdup(name);
-}
-
-static void validate_gotos(void)
-{
-    int i;
-
-    for (i = 0; i < goto_count; ++i) {
-        if (!find_label(gotos[i])) {
-            fprintf(stderr, "unknown label: %s\n", gotos[i]);
-            parse_error = 1;
-        }
-        free(gotos[i]);
-    }
-    for (i = 0; i < label_count; ++i)
-        free(labels[i]);
-    label_count = 0;
-    goto_count = 0;
-}
 
 static void report_unknown(const char *name)
 {
@@ -129,11 +74,12 @@ definition:
             parse_error = 1;
         }
         symbols_begin_function();
-        begin_labels();
+        labels_begin_function();
     } '(' optional_parameters ')' {
         codegen_function_start($1);
     } statement {
-        validate_gotos();
+        if (!labels_validate_gotos())
+            parse_error = 1;
         codegen_function_end();
         free($1);
     }
@@ -188,7 +134,8 @@ statement:
     | AUTO declarations ';'
     | EXTRN names ';'
     | NAME ':' {
-        define_label($1);
+        if (!labels_define($1))
+            parse_error = 1;
         codegen_emit_named_label($1);
         free($1);
     } statement
@@ -220,7 +167,7 @@ statement:
         codegen_switch_default();
     } statement
     | GOTO NAME ';' {
-        record_goto($2);
+        labels_record_goto($2);
         codegen_goto_named($2);
         free($2);
     }
