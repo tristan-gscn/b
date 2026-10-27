@@ -54,6 +54,10 @@ test: $(TARGET)
 		'main() { return 42; }'; \
 	run_test 'implicit return value' \
 		'main() { auto x; x = 1; }'; \
+	run_test 'auto initializers' \
+		'main() { auto x 42, y '\''A'\'', message "ok"; return x + y; }'; \
+	run_test 'auto name initializer' \
+		'main() { auto x 42, y x; return y; }'; \
 	run_test 'partial explicit return' \
 		'main(x) { if (x) return 1; }'; \
 	run_test 'goto and label' \

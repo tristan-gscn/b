@@ -186,9 +186,43 @@ declaration:
             codegen_allocate_local();
         free($1);
     }
-    | NAME constant_or_name {
+    | NAME {
         if (symbols_add_local($1) != -1)
             codegen_allocate_local();
+    } auto_initializer {
+        int offset = symbols_local_offset($1);
+
+        if (offset != -1)
+            codegen_store_local(offset);
+        free($1);
+    }
+    ;
+
+auto_initializer:
+    NUMBER {
+        codegen_push_immediate($1);
+    }
+    | CONSTANT {
+        codegen_push_immediate($1);
+    }
+    | STRING {
+        codegen_push_string($1);
+        free($1);
+    }
+    | NAME {
+        int offset = symbols_parameter_offset($1);
+
+        if (offset != -1)
+            codegen_push_parameter(offset);
+        else {
+            offset = symbols_local_offset($1);
+            if (offset != -1)
+                codegen_push_local(offset);
+            else {
+                report_unknown($1);
+                codegen_push_name($1);
+            }
+        }
         free($1);
     }
     ;
