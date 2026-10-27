@@ -54,8 +54,8 @@ void codegen_load_indirect(void)
 
 void codegen_store_indirect(void)
 {
-    printf("    pop eax\n");
     printf("    pop ebx\n");
+    printf("    pop eax\n");
     printf("    mov DWORD PTR [ebx], eax\n");
 }
 
