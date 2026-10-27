@@ -62,6 +62,8 @@ test: $(TARGET)
 		'main(x) { if (x) return 1; }'; \
 	run_test 'goto and label' \
 		'main() { goto done; return 0; done: return 1; }'; \
+	run_test 'forward label validation' \
+		'main() { goto later; later: return 1; }'; \
 	run_test 'switch and case' \
 		'main(x) { switch x { case 1: return 7; case 2: return 8; } }'; \
 	run_test 'character and string literals' \
