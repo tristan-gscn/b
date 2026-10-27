@@ -6,7 +6,11 @@
 
 static const char *parameters[MAX_SYMBOLS];
 static const char *locals[MAX_SYMBOLS];
-static const char *globals[MAX_SYMBOLS];
+struct global_symbol {
+    char *name;
+    int defined;
+};
+static struct global_symbol globals[MAX_SYMBOLS];
 static int parameter_count;
 static int local_count;
 static int global_count;
@@ -16,10 +20,15 @@ static int add_global(const char *name)
     int i;
 
     for (i = 0; i < global_count; ++i)
-        if (strcmp(globals[i], name) == 0)
+        if (strcmp(globals[i].name, name) == 0) {
+            if (!globals[i].defined) {
+                globals[i].defined = 1;
+                return 1;
+            }
             return 0;
+        }
     if (global_count < MAX_SYMBOLS)
-        globals[global_count++] = strdup(name);
+        globals[global_count++] = (struct global_symbol){ strdup(name), 1 };
     return 1;
 }
 
@@ -30,7 +39,14 @@ int symbols_add_global(const char *name)
 
 int symbols_add_external(const char *name)
 {
-    return add_global(name);
+    int i;
+
+    for (i = 0; i < global_count; ++i)
+        if (strcmp(globals[i].name, name) == 0)
+            return globals[i].defined ? -1 : 0;
+    if (global_count < MAX_SYMBOLS)
+        globals[global_count++] = (struct global_symbol){ strdup(name), 0 };
+    return 1;
 }
 
 void symbols_begin_function(void)
@@ -97,7 +113,7 @@ int symbols_is_global(const char *name)
     int i;
 
     for (i = 0; i < global_count; ++i)
-        if (strcmp(globals[i], name) == 0)
+        if (strcmp(globals[i].name, name) == 0)
             return 1;
     return 0;
 }

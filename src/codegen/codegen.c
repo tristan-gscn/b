@@ -1,8 +1,12 @@
 #include "codegen.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static int next_label;
 static int next_string;
+static char *strings[64];
+static int string_count;
 static int current_return_label;
 static int current_default_return_label;
 static int current_function_id;
@@ -46,19 +50,37 @@ void codegen_push_immediate(int value)
 
 void codegen_push_string(const char *value)
 {
-    const unsigned char *p = (const unsigned char *)value;
     int label = next_string++;
 
-    printf(".section .rodata\n");
-    printf(".LC%d:\n", label);
-    printf("    .byte ");
-    do {
-        printf("%s%u", p == (const unsigned char *)value ? "" : ", ",
-            (unsigned int)*p);
-    } while (*p++ != '\0');
-    printf("\n.text\n");
     printf("    lea eax, [.LC%d]\n", label);
     printf("    push eax\n");
+    if (string_count < 64)
+        strings[string_count++] = strdup(value);
+}
+
+void codegen_finish_program(void)
+{
+    int i;
+
+    if (string_count == 0)
+        return;
+    printf(".section .rodata\n");
+    for (i = 0; i < string_count; ++i) {
+        const unsigned char *p = (const unsigned char *)strings[i];
+        int j;
+
+        printf(".LC%d:\n    .byte ", i);
+        for (j = 0; ; ++j) {
+            if (j != 0)
+                printf(", ");
+            printf("%u", (unsigned int)p[j]);
+            if (p[j] == '\0')
+                break;
+        }
+        printf("\n");
+        free(strings[i]);
+    }
+    string_count = 0;
 }
 
 void codegen_push_parameter(int offset)

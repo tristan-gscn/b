@@ -5,6 +5,7 @@ void codegen_function_start(const char *name);
 void codegen_function_end(void);
 void codegen_push_immediate(int value);
 void codegen_push_string(const char *value);
+void codegen_finish_program(void);
 void codegen_push_parameter(int offset);
 void codegen_push_local(int offset);
 void codegen_push_parameter_address(int offset);

@@ -112,8 +112,14 @@ static void report_unknown(const char *name)
 %%
 
 program:
+    definitions {
+        codegen_finish_program();
+    }
+    ;
+
+definitions:
     /* empty */
-    | program definition
+    | definitions definition
     ;
 
 definition:
@@ -339,14 +345,14 @@ names:
 
 external_names:
     NAME {
-        if (!symbols_add_external($1)) {
+        if (symbols_add_external($1) < 0) {
             fprintf(stderr, "duplicate global: %s\n", $1);
             parse_error = 1;
         }
         free($1);
     }
     | external_names ',' NAME {
-        if (!symbols_add_external($3)) {
+        if (symbols_add_external($3) < 0) {
             fprintf(stderr, "duplicate global: %s\n", $3);
             parse_error = 1;
         }
