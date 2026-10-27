@@ -50,6 +50,15 @@ test: $(TARGET)
 		fi; \
 		rm -f "$$output"; \
 	}; \
+	run_error_test() { \
+		printf '\n[%s]\n%s\n' "$$1" "$$2"; \
+		if printf '%s\n' "$$2" | ./$(TARGET) >/dev/null 2>&1; then \
+			printf 'FAIL\n' >&2; \
+			return 1; \
+		else \
+			printf 'PASS\n'; \
+		fi; \
+	}; \
 	run_test 'constant return' \
 		'main() { return 42; }'; \
 	run_test 'implicit return value' \
@@ -95,7 +104,13 @@ test: $(TARGET)
 	run_test 'indirect postfix increment' \
 		'main(p) { (*p)++; return *p; }'; \
 	run_test 'vector prefix increment' \
-		'main(p) { ++p[2]; return p[2]; }'
+		'main(p) { ++p[2]; return p[2]; }'; \
+	run_error_test 'duplicate parameters' \
+		'main(x, x) { return x; }'; \
+	run_error_test 'duplicate locals' \
+		'main() { auto x, x; return x; }'; \
+	run_error_test 'unknown label' \
+		'main() { goto missing; }'
 
 clean:
 	rm -f $(TARGET) $(PARSER) $(PARSER_HEADER) $(SCANNER) \

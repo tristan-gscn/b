@@ -11,25 +11,26 @@ static int parameter_count;
 static int local_count;
 static int global_count;
 
-static void add_global(const char *name)
+static int add_global(const char *name)
 {
     int i;
 
     for (i = 0; i < global_count; ++i)
         if (strcmp(globals[i], name) == 0)
-            return;
+            return 0;
     if (global_count < MAX_SYMBOLS)
         globals[global_count++] = strdup(name);
+    return 1;
 }
 
-void symbols_add_global(const char *name)
+int symbols_add_global(const char *name)
 {
-    add_global(name);
+    return add_global(name);
 }
 
-void symbols_add_external(const char *name)
+int symbols_add_external(const char *name)
 {
-    add_global(name);
+    return add_global(name);
 }
 
 void symbols_begin_function(void)
@@ -44,14 +45,25 @@ void symbols_begin_function(void)
     local_count = 0;
 }
 
-void symbols_add_parameter(const char *name)
+int symbols_add_parameter(const char *name)
 {
+    int i;
+
+    for (i = 0; i < parameter_count; ++i)
+        if (strcmp(parameters[i], name) == 0)
+            return 0;
     if (parameter_count < MAX_SYMBOLS)
         parameters[parameter_count++] = strdup(name);
+    return 1;
 }
 
 int symbols_add_local(const char *name)
 {
+    int i;
+
+    for (i = 0; i < local_count; ++i)
+        if (strcmp(locals[i], name) == 0)
+            return -1;
     if (local_count >= MAX_SYMBOLS)
         return -1;
     locals[local_count] = strdup(name);

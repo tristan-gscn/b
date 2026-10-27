@@ -116,7 +116,10 @@ program:
 
 definition:
     NAME {
-        symbols_add_global($1);
+        if (!symbols_add_global($1)) {
+            fprintf(stderr, "duplicate global: %s\n", $1);
+            parse_error = 1;
+        }
         symbols_begin_function();
         begin_labels();
     } '(' optional_parameters ')' {
@@ -136,11 +139,17 @@ definition:
 
 parameters:
     NAME {
-        symbols_add_parameter($1);
+        if (!symbols_add_parameter($1)) {
+            fprintf(stderr, "duplicate parameter: %s\n", $1);
+            parse_error = 1;
+        }
         free($1);
     }
     | parameters ',' NAME {
-        symbols_add_parameter($3);
+        if (!symbols_add_parameter($3)) {
+            fprintf(stderr, "duplicate parameter: %s\n", $3);
+            parse_error = 1;
+        }
         free($3);
     }
     ;
@@ -267,11 +276,19 @@ declaration:
     NAME {
         if (symbols_add_local($1) != -1)
             codegen_allocate_local();
+        else {
+            fprintf(stderr, "duplicate local: %s\n", $1);
+            parse_error = 1;
+        }
         free($1);
     }
     | NAME {
         if (symbols_add_local($1) != -1)
             codegen_allocate_local();
+        else {
+            fprintf(stderr, "duplicate local: %s\n", $1);
+            parse_error = 1;
+        }
     } auto_initializer {
         int offset = symbols_local_offset($1);
 
@@ -317,11 +334,17 @@ names:
 
 external_names:
     NAME {
-        symbols_add_external($1);
+        if (!symbols_add_external($1)) {
+            fprintf(stderr, "duplicate global: %s\n", $1);
+            parse_error = 1;
+        }
         free($1);
     }
     | external_names ',' NAME {
-        symbols_add_external($3);
+        if (!symbols_add_external($3)) {
+            fprintf(stderr, "duplicate global: %s\n", $3);
+            parse_error = 1;
+        }
         free($3);
     }
     ;
