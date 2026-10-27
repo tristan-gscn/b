@@ -327,6 +327,7 @@ void codegen_goto_named(const char *name)
 void codegen_switch_start(void)
 {
     printf("    pop esi\n");
+    printf("    xor edi, edi\n");
     switch_active = 1;
     switch_skip_label = -1;
 }
@@ -337,8 +338,25 @@ void codegen_switch_case(int value)
         if (switch_skip_label != -1)
             codegen_emit_label(switch_skip_label);
         switch_skip_label = codegen_new_label();
+        printf("    cmp edi, 0\n");
+        printf("    jne .L%d_body\n", switch_skip_label);
         printf("    cmp esi, %d\n", value);
         printf("    jne .L%d\n", switch_skip_label);
+        printf("    mov edi, 1\n");
+        printf(".L%d_body:\n", switch_skip_label);
+    }
+}
+
+void codegen_switch_default(void)
+{
+    if (switch_active) {
+        if (switch_skip_label != -1)
+            codegen_emit_label(switch_skip_label);
+        switch_skip_label = codegen_new_label();
+        printf("    cmp edi, 0\n");
+        printf("    jne .L%d_body\n", switch_skip_label);
+        printf("    mov edi, 1\n");
+        printf(".L%d_body:\n", switch_skip_label);
     }
 }
 

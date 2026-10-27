@@ -67,6 +67,7 @@ static char *string_value(const char *text)
 "auto"      { return AUTO; }
 "extrn"     { return EXTRN; }
 "case"      { return CASE; }
+"default"   { return DEFAULT; }
 "if"        { return IF; }
 "else"      { return ELSE; }
 "while"     { return WHILE; }

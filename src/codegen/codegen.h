@@ -47,6 +47,7 @@ void codegen_emit_named_label(const char *name);
 void codegen_goto_named(const char *name);
 void codegen_switch_start(void);
 void codegen_switch_case(int value);
+void codegen_switch_default(void);
 void codegen_switch_end(void);
 void codegen_conditional_start(void);
 void codegen_conditional_else(void);

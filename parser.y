@@ -11,13 +11,16 @@ static int parse_error;
 #define MAX_LABELS 64
 static char *labels[MAX_LABELS];
 static char *gotos[MAX_LABELS];
+static int switch_cases[MAX_LABELS];
 static int label_count;
 static int goto_count;
+static int switch_case_count;
 
 static void begin_labels(void)
 {
     label_count = 0;
     goto_count = 0;
+    switch_case_count = 0;
 }
 
 static int find_label(const char *name)
@@ -81,7 +84,7 @@ static void report_unknown(const char *name)
 %type <ival> while_start while_condition
 %type <ival> arguments
 
-%token AUTO EXTRN CASE IF ELSE WHILE SWITCH GOTO RETURN
+%token AUTO EXTRN CASE DEFAULT IF ELSE WHILE SWITCH GOTO RETURN
 %token <sval> NAME STRING
 %token <ival> NUMBER CONSTANT
 %token EQ NE LE GE LSHIFT RSHIFT INC DEC
@@ -173,10 +176,29 @@ statement:
         free($1);
     } statement
     | CASE NUMBER ':' {
+        int i;
+        for (i = 0; i < switch_case_count; ++i)
+            if (switch_cases[i] == $2) {
+                fprintf(stderr, "duplicate case: %d\n", $2);
+                parse_error = 1;
+            }
+        if (switch_case_count < MAX_LABELS)
+            switch_cases[switch_case_count++] = $2;
         codegen_switch_case($2);
     } statement
     | CASE CONSTANT ':' {
+        int i;
+        for (i = 0; i < switch_case_count; ++i)
+            if (switch_cases[i] == $2) {
+                fprintf(stderr, "duplicate case: %d\n", $2);
+                parse_error = 1;
+            }
+        if (switch_case_count < MAX_LABELS)
+            switch_cases[switch_case_count++] = $2;
         codegen_switch_case($2);
+    } statement
+    | DEFAULT ':' {
+        codegen_switch_default();
     } statement
     | GOTO NAME ';' {
         record_goto($2);
@@ -189,6 +211,7 @@ statement:
     }
     | SWITCH expression {
         codegen_switch_start();
+        switch_case_count = 0;
     } statement {
         codegen_switch_end();
     }

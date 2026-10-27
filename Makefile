@@ -66,6 +66,8 @@ test: $(TARGET)
 		'main() { goto later; later: return 1; }'; \
 	run_test 'switch and case' \
 		'main(x) { switch x { case 1: return 7; case 2: return 8; } }'; \
+	run_test 'switch default' \
+		'main(x) { switch x { case 1: return 7; default: return 9; } }'; \
 	run_test 'character and string literals' \
 		'main() { auto message; message = "ok"; return '\''A'\''; }'; \
 	run_test 'arithmetic expressions' \
