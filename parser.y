@@ -11,16 +11,18 @@ static int parse_error;
 #define MAX_LABELS 64
 static char *labels[MAX_LABELS];
 static char *gotos[MAX_LABELS];
-static int switch_cases[MAX_LABELS];
+#define MAX_SWITCHES 64
+static int switch_cases[MAX_SWITCHES][MAX_LABELS];
+static int switch_case_counts[MAX_LABELS];
 static int label_count;
 static int goto_count;
-static int switch_case_count;
+static int switch_depth;
 
 static void begin_labels(void)
 {
     label_count = 0;
     goto_count = 0;
-    switch_case_count = 0;
+    switch_depth = 0;
 }
 
 static int find_label(const char *name)
@@ -186,24 +188,26 @@ statement:
     } statement
     | CASE NUMBER ':' {
         int i;
-        for (i = 0; i < switch_case_count; ++i)
-            if (switch_cases[i] == $2) {
+        for (i = 0; i < switch_case_counts[switch_depth - 1]; ++i)
+            if (switch_cases[switch_depth - 1][i] == $2) {
                 fprintf(stderr, "duplicate case: %d\n", $2);
                 parse_error = 1;
             }
-        if (switch_case_count < MAX_LABELS)
-            switch_cases[switch_case_count++] = $2;
+        if (switch_case_counts[switch_depth - 1] < MAX_LABELS)
+            switch_cases[switch_depth - 1]
+                [switch_case_counts[switch_depth - 1]++] = $2;
         codegen_switch_case($2);
     } statement
     | CASE CONSTANT ':' {
         int i;
-        for (i = 0; i < switch_case_count; ++i)
-            if (switch_cases[i] == $2) {
+        for (i = 0; i < switch_case_counts[switch_depth - 1]; ++i)
+            if (switch_cases[switch_depth - 1][i] == $2) {
                 fprintf(stderr, "duplicate case: %d\n", $2);
                 parse_error = 1;
             }
-        if (switch_case_count < MAX_LABELS)
-            switch_cases[switch_case_count++] = $2;
+        if (switch_case_counts[switch_depth - 1] < MAX_LABELS)
+            switch_cases[switch_depth - 1]
+                [switch_case_counts[switch_depth - 1]++] = $2;
         codegen_switch_case($2);
     } statement
     | DEFAULT ':' {
@@ -220,9 +224,10 @@ statement:
     }
     | SWITCH expression {
         codegen_switch_start();
-        switch_case_count = 0;
+        switch_case_counts[switch_depth++] = 0;
     } statement {
         codegen_switch_end();
+        --switch_depth;
     }
     | ';'
     ;
@@ -454,6 +459,12 @@ multiplicative:
 
 unary:
     postfix %prec '!'
+    | INC '(' '*' unary ')' {
+        codegen_increment(1, 1);
+    }
+    | DEC '(' '*' unary ')' {
+        codegen_increment(1, -1);
+    }
     | INC NAME '[' expression ']' {
         int offset = symbols_parameter_offset($2);
         if (offset != -1)

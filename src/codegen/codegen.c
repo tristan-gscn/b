@@ -6,8 +6,9 @@ static int next_string;
 static int current_return_label;
 static int current_default_return_label;
 static int current_function_id;
-static int switch_active;
-static int switch_skip_label;
+#define SWITCH_DEPTH 64
+static int switch_depth;
+static int switch_skip_labels[SWITCH_DEPTH];
 static int current_else_label;
 static int current_if_end_label;
 #define CONDITIONAL_DEPTH 64
@@ -326,46 +327,58 @@ void codegen_goto_named(const char *name)
 
 void codegen_switch_start(void)
 {
-    printf("    pop esi\n");
+    int depth = switch_depth++;
+
+    printf("    pop eax\n");
+    printf("    push esi\n");
+    printf("    push edi\n");
+    printf("    mov esi, eax\n");
     printf("    xor edi, edi\n");
-    switch_active = 1;
-    switch_skip_label = -1;
+    if (depth < SWITCH_DEPTH)
+        switch_skip_labels[depth] = -1;
 }
 
 void codegen_switch_case(int value)
 {
-    if (switch_active) {
-        if (switch_skip_label != -1)
-            codegen_emit_label(switch_skip_label);
-        switch_skip_label = codegen_new_label();
+    int depth = switch_depth - 1;
+
+    if (depth >= 0 && depth < SWITCH_DEPTH) {
+        if (switch_skip_labels[depth] != -1)
+            codegen_emit_label(switch_skip_labels[depth]);
+        switch_skip_labels[depth] = codegen_new_label();
         printf("    cmp edi, 0\n");
-        printf("    jne .L%d_body\n", switch_skip_label);
+        printf("    jne .L%d_body\n", switch_skip_labels[depth]);
         printf("    cmp esi, %d\n", value);
-        printf("    jne .L%d\n", switch_skip_label);
+        printf("    jne .L%d\n", switch_skip_labels[depth]);
         printf("    mov edi, 1\n");
-        printf(".L%d_body:\n", switch_skip_label);
+        printf(".L%d_body:\n", switch_skip_labels[depth]);
     }
 }
 
 void codegen_switch_default(void)
 {
-    if (switch_active) {
-        if (switch_skip_label != -1)
-            codegen_emit_label(switch_skip_label);
-        switch_skip_label = codegen_new_label();
+    int depth = switch_depth - 1;
+
+    if (depth >= 0 && depth < SWITCH_DEPTH) {
+        if (switch_skip_labels[depth] != -1)
+            codegen_emit_label(switch_skip_labels[depth]);
+        switch_skip_labels[depth] = codegen_new_label();
         printf("    cmp edi, 0\n");
-        printf("    jne .L%d_body\n", switch_skip_label);
+        printf("    jne .L%d_body\n", switch_skip_labels[depth]);
         printf("    mov edi, 1\n");
-        printf(".L%d_body:\n", switch_skip_label);
+        printf(".L%d_body:\n", switch_skip_labels[depth]);
     }
 }
 
 void codegen_switch_end(void)
 {
-    if (switch_active && switch_skip_label != -1)
-        codegen_emit_label(switch_skip_label);
-    switch_active = 0;
-    switch_skip_label = -1;
+    int depth = --switch_depth;
+
+    if (depth >= 0 && depth < SWITCH_DEPTH &&
+        switch_skip_labels[depth] != -1)
+        codegen_emit_label(switch_skip_labels[depth]);
+    printf("    pop edi\n");
+    printf("    pop esi\n");
 }
 
 void codegen_conditional_start(void)

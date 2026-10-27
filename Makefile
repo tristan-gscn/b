@@ -105,6 +105,10 @@ test: $(TARGET)
 		'main(p) { (*p)++; return *p; }'; \
 	run_test 'vector prefix increment' \
 		'main(p) { ++p[2]; return p[2]; }'; \
+	run_test 'nested switch' \
+		'main(x) { switch x { case 1: switch x { case 1: return 7; } default: return 8; } }'; \
+	run_test 'indirect prefix increment' \
+		'main(p) { ++(*p); return *p; }'; \
 	run_error_test 'duplicate parameters' \
 		'main(x, x) { return x; }'; \
 	run_error_test 'duplicate locals' \
